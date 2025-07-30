@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6a0572; /* Deep Purple */
+            --secondary-color: #00bf8e; /* Teal */
+            --text-color-light: #f0f0f0;
+            --text-color-dark: #333;
+            --background-dark: #1a1a2e;
+            --background-light: #f4f7f6;
+            --card-background: #2c2c4d;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            --transition-speed: 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-dark); /* Default to dark mode */
+            color: var(--text-color-light);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            overflow-x: hidden;
+        }
+
+        body.light-mode {
+            background-color: var(--background-light);
+            color: var(--text-color-dark);
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--box-shadow);
+            z-index: 100;
+        }
+
+        header .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-left: 30px;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            position: relative;
+            transition: color var(--transition-speed);
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            background: #fff;
+            left: 0;
+            bottom: -5px;
+            transition: width var(--transition-speed);
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.2s ease-in-out;
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+        body.light-mode .theme-toggle {
+            color: var(--primary-color);
+        }
+
+        /* Main Content */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            background: -webkit-linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero-section p {
+            font-size: 1.2em;
+            max-width: 700px;
+            opacity: 0.9;
+        }
+
+        .converter-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .converter-card {
+            background-color: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--secondary-color);
+        }
+
+        .form-group textarea {
+            width: calc(100% - 20px);
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color-light);
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color var(--transition-speed), background-color var(--transition-speed);
+        }
+
+        body.light-mode .form-group textarea {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--text-color-dark);
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        body.light-mode .form-group textarea:focus {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .generate-button {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow var(--transition-speed);
+            box-shadow: 0 5px 20px rgba(0, 191, 142, 0.4);
+        }
+
+        .generate-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 191, 142, 0.6);
+        }
+
+        .generate-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .image-output {
+            margin-top: 40px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 600px;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden; /* For smooth image transition */
+        }
+        body.light-mode .image-output {
+            background-color: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-output img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: var(--border-radius);
+            display: block;
+            object-fit: contain;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .image-output p {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        body.light-mode .image-output p {
+            color: rgba(51, 51, 51, 0.7);
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #111;
+            color: #ccc;
+            padding: 30px 40px;
+            text-align: center;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        footer .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            text-align: left;
+        }
+
+        footer .footer-section {
+            flex: 1;
+            min-width: 200px;
+            margin: 15px;
+        }
+
+        footer .footer-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        footer .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer .footer-section ul li {
+            margin-bottom: 8px;
+        }
+
+        footer .footer-section ul li a {
+            color: #aaa;
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
+
+        footer .footer-section ul li a:hover {
+            color: #fff;
+        }
+
+        footer .social-icons a {
+            color: #ccc;
+            font-size: 1.5em;
+            margin: 0 10px;
+            transition: color var(--transition-speed);
+        }
+
+        footer .social-icons a:hover {
+            color: var(--secondary-color);
+        }
+
+        footer .footer-bottom {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            header .logo {
+                margin-bottom: 15px;
+            }
+            nav ul {
+                flex-direction: column;
+                margin-top: 15px;
+            }
+            nav ul li {
+                margin: 10px 0;
+            }
+            .hero-section h1 {
+                font-size: 2.5em;
+            }
+            .hero-section p {
+                font-size: 1em;
+            }
+            .converter-card {
+                padding: 25px;
+            }
+            .form-group textarea {
+                min-height: 80px;
+            }
+            footer .footer-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            footer .footer-section {
+                text-align: center;
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="#" class="logo">AI ARTIFY</a>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Gallery</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode">&#9789;</button>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <h1>Unleash Your Imagination with AI</h1>
+            <p>Transform your words into stunning images. Simply type your creative ideas and let our AI bring them to life.</p>
+        </section>
+
+        <section class="converter-card">
+            <div class="form-group">
+                <label for="promptInput">Enter your image prompt:</label>
+                <textarea id="promptInput" placeholder="e.g., A cyberpunk city at sunset, highly detailed, octane render"></textarea>
+            </div>
+            <button id="generateButton" class="generate-button">Generate Image</button>
+
+            <div class="image-output" id="imageOutput">
+                <p>Your generated image will appear here.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="social-icons">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>About AI Artify</h3>
+                <p>AI Artify is a cutting-edge platform dedicated to making AI-powered image generation accessible and fun for everyone.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2025 AI Artify. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <script>
+        // REPLACE WITH YOUR ACTUAL HUGGING FACE TOKEN AND MODEL ID
+        const HUGGING_FACE_TOKEN = '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'; // e.g., 'hf_XXXXXXXXXXXXXXXXXXXX'
+        const HUGGING_FACE_MODEL_ID = 'stabilityai/stable-diffusion-xl-base-1.0'; // Or your chosen model
+
+        const promptInput = document.getElementById('promptInput');
+        const generateButton = document.getElementById('generateButton');
+        const imageOutput = document.getElementById('imageOutput');
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Function to save and load theme preference
+        function saveTheme(theme) {
+            localStorage.setItem('theme', theme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light-mode') {
+                body.classList.add('light-mode');
+                themeToggle.innerHTML = '&#9728;'; // Sun icon
+            } else {
+                body.classList.remove('light-mode');
+                themeToggle.innerHTML = '&#9789;'; // Moon icon
+            }
+        }
+
+        // Initial load of theme
+        loadTheme();
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('light-mode')) {
+                themeToggle.innerHTML = '&#9728;'; // Sun icon
+                saveTheme('light-mode');
+            } else {
+                themeToggle.innerHTML = '&#9789;'; // Moon icon
+                saveTheme('dark-mode');
+            }
+        });
+
+        async function generateImage(prompt) {
+            const API_URL = `https://api-inference.huggingface.co/models/${HUGGING_FACE_MODEL_ID}`;
+
+            try {
+                // Display loading spinner
+                imageOutput.innerHTML = '<div class="loading-spinner"></div>';
+                generateButton.disabled = true;
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${HUGGING_FACE_TOKEN}`
+                    },
+                    body: JSON.stringify({ inputs: prompt })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const resultBlob = await response.blob();
+                const imageUrl = URL.createObjectURL(resultBlob);
+
+                imageOutput.innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+            } catch (error) {
+                console.error("Error generating image:", error);
+                imageOutput.innerHTML = '<p style="color: red;">Error generating image. Please try again. (Check your API Token and model ID)</p>';
+            } finally {
+                generateButton.disabled = false;
+            }
+        }
+
+        generateButton.addEventListener('click', () => {
+            const prompt = promptInput.value.trim();
+            if (prompt) {
+                generateImage(prompt);
+            } else {
+                alert('Please enter a prompt!');
+            }
+        });
+    </script>
+</body>
+</html>
